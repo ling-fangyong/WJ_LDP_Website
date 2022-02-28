@@ -3,6 +3,7 @@ module wj_rear
 go 1.16
 
 require (
+	github.com/gin-contrib/sessions v0.0.4 // indirect
 	github.com/gin-gonic/gin v1.7.7 // indirect
 	github.com/go-playground/validator/v10 v10.10.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
