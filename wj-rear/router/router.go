@@ -14,6 +14,8 @@ func Run() {
 
 	r.Use(middleware.Session(secretKey))
 
+	r.Use(middleware.CurrentUser())
+
 	api := r.Group("/api")
 	{
 		user := api.Group("/user")
@@ -24,8 +26,16 @@ func Run() {
 
 			user.POST("/login", controller.Login)
 
-			user.DELETE("/logout", controller.Logout)
 		}
+
+		authed := api.Group("/")
+		authed.Use(middleware.AuthUserLogin()) //登录验证
+		{
+			authed.DELETE("/user/logout", controller.Logout)
+
+			authed.POST("/design/questionaire", controller.UpdateQuestionaire)
+		}
+
 	}
 
 	r.Run(":8080")

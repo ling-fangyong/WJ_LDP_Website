@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
+//用户表
 type User struct {
 	gorm.Model
 	Name     string `form:"name" json:"name" binding:"required,min=4,max=16"`
