@@ -34,6 +34,8 @@ func Run() {
 			authed.DELETE("/user/logout", controller.Logout)
 
 			authed.POST("/design/questionaire", controller.UpdateQuestionaire)
+
+			authed.POST("/design/UpdateQuestion", controller.UpdateQuestion)
 		}
 
 	}
