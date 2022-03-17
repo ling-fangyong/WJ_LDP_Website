@@ -36,6 +36,12 @@ func Run() {
 			authed.POST("/design/questionaire", controller.UpdateQuestionaire)
 
 			authed.POST("/design/UpdateQuestion", controller.UpdateQuestion)
+
+			authed.DELETE("/design/DeleteQuestionaire", controller.DeleteQuestionaire)
+
+			authed.GET("/show/ShowQuestionaires", controller.ShowQuestionaires)
+
+			authed.GET("/show/ShowQuestions", controller.ShowQuestions)
 		}
 
 	}
