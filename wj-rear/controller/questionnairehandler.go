@@ -245,6 +245,7 @@ func DeleteQuestion(QuesId uint) (bool, gin.H) {
 	}
 }
 
+//获取该用户问卷列表
 func ShowQuestionaires(ctx *gin.Context) {
 	session := sessions.Default(ctx)
 	uid := session.Get("user_id")
@@ -273,8 +274,12 @@ func ShowQuestionaires(ctx *gin.Context) {
 	}
 }
 
+//获取问题列表
 func ShowQuestions(ctx *gin.Context) {
-	WjId := ctx.PostForm("WjId")
+	WjId := ctx.Query("id")
+	if WjId == "" {
+		WjId = ctx.PostForm("WjId")
+	}
 	var ques []model.Question
 	if err := database.DB.Where("Wj_Id=?", WjId).Find(&ques).Error; err != nil {
 		ctx.JSON(http.StatusUnprocessableEntity, gin.H{
