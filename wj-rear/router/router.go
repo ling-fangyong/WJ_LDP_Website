@@ -44,6 +44,12 @@ func Run() {
 			authed.GET("/show/ShowQuestions", controller.ShowQuestions)
 		}
 
+		answer := api.Group("/answer")
+		{
+			answer.GET("/GetQuestionaire", controller.GetQuestionaire)
+
+			answer.POST("/SubmitQues", controller.SubmitQues)
+		}
 	}
 
 	r.Run(":8080")
