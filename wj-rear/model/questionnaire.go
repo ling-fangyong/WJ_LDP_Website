@@ -32,6 +32,6 @@ type Answer struct {
 	WjId       uint //问卷ID
 	QuestionId uint //问题ID
 	QuesType   int8 //问题类型暂时不加
-	AnsInt     uint //问题类型为0时存储选择选项的ID   问题类型为1时存储映射并转换后的0 1
+	AnsInt     uint //TODO:问题类型为1时存储选择选项的ID 问题类型为2时存储映射并转换后的0 1需要添加存储范围  3可能用于键值型数据 需要补充
 	AnsString  string
 }

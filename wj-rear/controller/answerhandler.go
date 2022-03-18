@@ -21,6 +21,7 @@ type AnsJson struct {
 		AnsInt    uint   `json:"AnsInt"`
 		AnsString string `json:"AnsString"`
 		QuesType  int8   `json:"QuesType"`
+		//TODO:暂时完成选择题，填空题只允许数值型数据进行分析，此处还需要存储值范围
 	} `json:"ans"`
 }
 
@@ -105,9 +106,8 @@ func SubmitQues(ctx *gin.Context) {
 		ans.WjId = ansJson.WjId
 		ans.QuesType = item.QuesType
 		ans.QuestionId = item.QuesId
-		if item.QuesType == 1 { //
+		if item.QuesType == 1 || item.QuesType == 2 { //TODO:当类型为2时还要增加两个变量代表数值范围，暂时先完成选择题测试
 			ans.AnsInt = item.AnsInt
-
 			if err := database.DB.Create(&ans).Error; err != nil {
 				ctx.JSON(http.StatusUnprocessableEntity, gin.H{
 					"code": "422",
@@ -116,7 +116,7 @@ func SubmitQues(ctx *gin.Context) {
 				tx.Rollback()
 				return
 			}
-		} else if item.QuesType == 2 {
+		} else if item.QuesType == 3 {
 			ans.AnsString = item.AnsString
 
 			if err := database.DB.Create(&ans).Error; err != nil {
