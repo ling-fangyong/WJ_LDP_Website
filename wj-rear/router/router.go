@@ -33,7 +33,7 @@ func Run() {
 		{
 			authed.DELETE("/user/logout", controller.Logout)
 
-			authed.POST("/design/questionaire", controller.UpdateQuestionaire)
+			authed.POST("/design/UpdateQuestionaire", controller.UpdateQuestionaire)
 
 			authed.POST("/design/UpdateQuestion", controller.UpdateQuestion)
 
@@ -41,7 +41,7 @@ func Run() {
 
 			authed.GET("/show/ShowQuestionaires", controller.ShowQuestionaires)
 
-			authed.GET("/show/ShowQuestions", controller.ShowQuestions)
+			authed.POST("/show/ShowQuestions", controller.ShowQuestions)
 		}
 
 		answer := api.Group("/answer")
@@ -52,5 +52,5 @@ func Run() {
 		}
 	}
 
-	r.Run(":8080")
+	r.Run(":3030")
 }

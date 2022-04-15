@@ -1,41 +1,50 @@
-<!--登录网站-->
+<!-- 用户注册 -->
 <template>
-    <div class="LoginBackgroud">
-        <el-form :rules="rules" ref="LoginForm" :model="LoginForm" class="LoginContainer">
-            <h3 class="LoginTitle">网站登录</h3>
+    <div class="RegisterBackgroud">
+        <el-form :rules="rules" ref="RegisterForm" :model="RegisterForm" class="RegisterContainer">
+            <h3 class="RegisterTitle">用户注册</h3>
             <el-form-item prop="username">
-                <el-input type="text" v-model="LoginForm.username" aria-placeholder="请输入用户名">
+                <el-input type="text" v-model="RegisterForm.username" aria-placeholder="请输入用户名">
                     <i class="el-icon-user" slot="prefix"></i>
                 </el-input>
             </el-form-item>
             <el-form-item prop="password">
-                <el-input type="password" v-model="LoginForm.password" aria-placeholder="请输入密码" show-password>\
+                <el-input type="password" v-model="RegisterForm.password" aria-placeholder="请输入密码" show-password>
+                    <i class="el-icon-lock" slot="prefix"></i>
+                </el-input>
+            </el-form-item>
+            <el-form-item prop="repassword">
+                <el-input type="password" v-model="RegisterForm.repassword" aria-placeholder="再次输入密码" show-password>
                     <i class="el-icon-lock" slot="prefix"></i>
                 </el-input>
             </el-form-item>
             <el-form-item style="text-align: center">
-                <el-button type="primary" @click="submitLogin">登录</el-button>
+                <el-button type="primary" @click="submitRegister">注册</el-button>
             </el-form-item>
-            <!-- <design ref="design"></design> -->
-            <!-- <el-button @click="test">测试</el-button>  测试design未定义问题 -->
-            <el-link type="primary" :underline="false" href="/register">注册新账号</el-link>
+            <el-link type="primary" :underline="false" href="/Login">已有帐号，登录</el-link>
         </el-form>                
     </div>    
 </template>
 
 <script>
 import * as API from "../api/user"
-// import Design from './design.vue'
 export default {
-    name:"Login",
-    // components:{
-    //     Design,
-    // },
+    name:"Register",
     data(){
+        var repasswordValidate = (rule, value,callback) =>{
+            if(value == ''){
+                callback(new Error('重复密码不为空'))
+            }else if(this.RegisterForm.repassword != this.RegisterForm.password){
+                callback(new Error('两次密码不一致'))
+            }else{
+                callback()
+            }
+        }
         return {
-            LoginForm:{
+            RegisterForm:{
                 username:'',//用户名
                 password:'',//密码
+                repassword:'',//重复密码
             },
             rules:{
                 username:[
@@ -45,24 +54,27 @@ export default {
                 password:[
                     {required:true,message:'密码不能为空',trigger:'blur'},
                     {min:6,max:20,message:'密码长度应为6-20位',trigger:'blur'},
-                ]
+                ],
+                repassword:[
+                    {required:true,validator:repasswordValidate,trigger:'blur'}
+                ],
             }
         }
     },
     methods:{
-        submitLogin(){
-            this.$refs.LoginForm.validate((valid)=>{
+        submitRegister(){
+            this.$refs.RegisterForm.validate((valid)=>{
                 if(valid){
-                    API.login(this.LoginForm).then(res=>{
+                    API.register(this.RegisterForm).then(res=>{
                         console.log(res);
                         if(res.code==200){
                             this.$notify({
                                 type :'sucess',
-                                message :this.LoginForm.username +res.msg +'!',
+                                message :this.RegisterForm.username +res.msg +'!',
                             });
-                            sessionStorage.setItem("username",this.LoginForm.username);
-                            this.$emit("state");
-                            this.$router.push({path:'/home'});
+                            sessionStorage.setItem("username",this.RegisterForm.username);
+                            this.$emit("state");//传递状态
+                            this.router.push({path:'/home'});
                         }else{
                             this.$notify({
                                 type : 'error',
@@ -82,23 +94,19 @@ export default {
                     return false;
                 }
             })
-        },
-        // test(){
-        //     console.log(this.$refs.design)
-        //     this.$refs.design.sayHi();
-        // }
+        }
     }
 }
 </script>
 
 <style >
-    .LoginBackgroud{
+    .RegisterBackgroud{
         position: absolute;
         width: 100%;
         height: 100%;
         background: #e0dcdc;
     }
-    .LoginContainer{
+    .RegisterContainer{
         border-radius: 15px;
         background-clip: padding-box;
         margin: 188px auto;
@@ -108,12 +116,12 @@ export default {
         border: 1px solid #eaeaea;
         box-shadow: 0 0 25px #cac6c6;
     }
-    .LoginTitle{
+    .RegisterTitle{
         margin: 0px auto 40px auto;
         text-align: center;
     }
     .el-link{
-        margin-left: 41%;
+        margin-left: 38%;
         margin-top: 0%;
         line-height: 20px;
         font-size:13px;

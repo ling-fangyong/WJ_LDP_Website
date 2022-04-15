@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"wj_rear/database"
@@ -29,52 +30,125 @@ type OptionJson struct {
 	OpID  uint   `json:"opId"`
 }
 type DeleteJson struct {
-	WjID   uint `json:"WjID"`
+	WjID   uint `json:"WjId"`
 	QuesId uint `json:"QuesId"`
 }
 
+type QuesRetJson struct {
+	WjID          uint         `json:"WjId" binding:"required"`
+	Options       []OptionJson `json:"options"`
+	QuesID        uint         `json:"QuesId"`
+	Type          int8         `json:"type"`
+	Title         string       `json:"title"`
+	RadioValue    string       `json:"radiovalue"`
+	CheckboxValue []string     `json:"checkboxValue"`
+	Textvalue     string       `json:"textValue"`
+}
+
 func UpdateQuestionaire(ctx *gin.Context) {
-	title := ctx.PostForm("title")
-	desc := ctx.PostForm("desc")
-	var quetionaure model.Questionnaire
-	var WjId string
-	if WjId = ctx.PostForm("ID"); WjId != "" {
-		if err := database.DB.First(&quetionaure, WjId).Error; err != nil {
-			ctx.JSON(http.StatusUnprocessableEntity, gin.H{
+	// title := ctx.PostForm("title")
+	// desc := ctx.PostForm("desc")
+	// var quetionaure model.Questionnaire
+	// var WjId string
+	// if err := ctx.BindJSON(&quetionaure); err != nil {
+	// 	ctx.JSON(http.StatusOK, gin.H{
+	// 		"code": 422,
+	// 		"msg":  "输入格式不符合要求",
+	// 	})
+	// 	return
+	// }
+	// if WjId = ctx.PostForm("ID"); WjId != "" {
+	// 	if err := database.DB.First(&quetionaure, WjId).Error; err != nil {
+	// 		ctx.JSON(http.StatusOK, gin.H{
+	// 			"code": 422,
+	// 			"msg":  "问卷不存在",
+	// 		})
+	// 		return
+	// 	}
+	// } else {
+	// 	session := sessions.Default(ctx)
+	// 	if uid := session.Get("user_id"); uid != nil {
+	// 		quetionaure.UserId = uid.(uint)
+	// 	} //不做进一步判断，该一系列操作将放在auth鉴权下
+	// }
+
+	// var questionaire model.Questionnaire
+	// if err := ctx.BindJSON(&questionaire); err != nil {
+	// 	ctx.JSON(http.StatusOK, gin.H{
+	// 		"code": 422,
+	// 		"msg":  "输入格式不符合要求",
+	// 	})
+	// 	return
+	// }
+	// if questionaire.ID == 0 {
+	// 	session := sessions.Default(ctx)
+	// 	if uid := session.Get("user_id"); uid != nil {
+	// 		questionaire.UserId = uid.(uint)
+	// 	} //不做进一步判断，该一系列操作将放在auth鉴权下
+	// }
+	// fmt.Println("title:", questionaire.Title)
+	// fmt.Println("desc:", questionaire.Desc)
+	// if questionaire.ID != 0 {
+	// 	database.DB.Save(&questionaire)
+	// 	ctx.JSON(http.StatusOK, gin.H{
+	// 		"code": 200,
+	// 		"msg":  "更新问卷成功",
+	// 	})
+	// } else {
+	// 	database.DB.Create(&questionaire)
+	// 	ctx.JSON(http.StatusOK, gin.H{
+	// 		"code": 200,
+	// 		"msg":  "创建问卷成功",
+	// 	})
+	// }
+
+	var questionairejson QuestionaireJson
+	var questionaire model.Questionnaire
+	if err := ctx.BindJSON(&questionairejson); err != nil {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": 422,
+			"msg":  "输入格式不符合要求",
+		})
+		return
+	}
+	if questionairejson.WjId == 0 {
+		session := sessions.Default(ctx)
+		if uid := session.Get("user_id"); uid != nil {
+			questionaire.UserId = uid.(uint)
+		} //不做进一步判断，该一系列操作将放在auth鉴权下
+	} else {
+		if err := database.DB.First(&questionaire, questionairejson.WjId).Error; err != nil {
+			ctx.JSON(http.StatusOK, gin.H{
 				"code": 422,
 				"msg":  "问卷不存在",
 			})
 			return
 		}
-	} else {
-		session := sessions.Default(ctx)
-		if uid := session.Get("user_id"); uid != nil {
-			quetionaure.UserId = uid.(uint)
-		} //不做进一步判断，该一系列操作将放在auth鉴权下
 	}
-	quetionaure.Title = title
-	quetionaure.Desc = desc
-	if WjId != "" {
-		database.DB.Save(&quetionaure)
+	// fmt.Println("title:", questionaire.Title)
+	// fmt.Println("desc:", questionaire.Desc)
+	questionaire.Title = questionairejson.Title
+	questionaire.Desc = questionairejson.Desc
+	if questionairejson.WjId != 0 {
+		database.DB.Save(&questionaire)
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": 200,
 			"msg":  "更新问卷成功",
 		})
 	} else {
-		database.DB.Create(&quetionaure)
+		database.DB.Create(&questionaire)
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": 200,
 			"msg":  "创建问卷成功",
 		})
 	}
-
 }
 
 func UpdateQuestion(ctx *gin.Context) {
 	var quesfront QuesJson
 	if err := ctx.BindJSON(&quesfront); err != nil {
 		log.Println(err)
-		ctx.JSON(http.StatusUnprocessableEntity, gin.H{
+		ctx.JSON(http.StatusOK, gin.H{
 			"code": "422",
 			"msg":  "输入格式出错",
 		})
@@ -86,7 +160,7 @@ func UpdateQuestion(ctx *gin.Context) {
 	log.Println(quesfront.WjID, "   ", quesfront.QuesID)
 	if quesfront.QuesID != 0 { //update question
 		if err := database.DB.First(&ques, quesfront.QuesID).Error; err != nil {
-			ctx.JSON(http.StatusUnprocessableEntity, gin.H{
+			ctx.JSON(http.StatusOK, gin.H{
 				"code": 422,
 				"msg":  "问题不存在",
 			})
@@ -104,7 +178,7 @@ func UpdateQuestion(ctx *gin.Context) {
 		}
 
 		if err := database.DB.Where("Question_Id=?", quesfront.QuesID).Find(&options).Error; err != nil {
-			ctx.JSON(http.StatusUnprocessableEntity, gin.H{
+			ctx.JSON(http.StatusOK, gin.H{
 				"code": 422,
 				"msg":  "选项查询失败",
 			})
@@ -160,7 +234,7 @@ func UpdateQuestion(ctx *gin.Context) {
 func DeleteQuestionaire(ctx *gin.Context) {
 	var DeleteArg DeleteJson
 	if err := ctx.BindJSON(&DeleteArg); err != nil {
-		ctx.JSON(http.StatusUnprocessableEntity, gin.H{
+		ctx.JSON(http.StatusOK, gin.H{
 			"code": 422,
 			"msg":  "输入格式不符合要求",
 		})
@@ -169,7 +243,7 @@ func DeleteQuestionaire(ctx *gin.Context) {
 	if DeleteArg.WjID != 0 {
 		tx := database.DB.Begin()
 		if err := database.DB.Where("Id=?", DeleteArg.WjID).Delete(&model.Questionnaire{}).Error; err != nil {
-			ctx.JSON(http.StatusUnprocessableEntity, gin.H{
+			ctx.JSON(http.StatusOK, gin.H{
 				"code": 422,
 				"msg":  "问卷删除失败",
 			})
@@ -178,7 +252,7 @@ func DeleteQuestionaire(ctx *gin.Context) {
 		}
 		var ques []model.Question
 		if err := database.DB.Where("Wj_Id=?", DeleteArg.WjID).Find(&ques).Error; err != nil {
-			ctx.JSON(http.StatusUnprocessableEntity, gin.H{
+			ctx.JSON(http.StatusOK, gin.H{
 				"code": 422,
 				"msg":  "问题查询失败",
 			})
@@ -188,7 +262,7 @@ func DeleteQuestionaire(ctx *gin.Context) {
 			log.Println(ques)
 			for _, Ques := range ques {
 				if ok, msg := DeleteQuestion(Ques.ID); !ok {
-					ctx.JSON(http.StatusUnprocessableEntity, msg)
+					ctx.JSON(http.StatusOK, msg)
 					tx.Rollback()
 					return
 				}
@@ -201,10 +275,9 @@ func DeleteQuestionaire(ctx *gin.Context) {
 		tx.Commit()
 	} else {
 		if DeleteArg.QuesId != 0 {
-			if ok, msg := DeleteQuestion(DeleteArg.QuesId); !ok {
-				ctx.JSON(http.StatusUnprocessableEntity, msg)
-				return
-			}
+			_, msg := DeleteQuestion(DeleteArg.QuesId)
+			ctx.JSON(http.StatusOK, msg)
+			return
 		}
 	}
 }
@@ -252,7 +325,7 @@ func ShowQuestionaires(ctx *gin.Context) {
 	var questionaire []model.Questionnaire
 	if err := database.DB.Where("user_id=?", uid).Find(&questionaire).Error; err != nil {
 		log.Println(err)
-		ctx.JSON(http.StatusUnprocessableEntity, gin.H{
+		ctx.JSON(http.StatusOK, gin.H{
 			"code": 422,
 			"msg":  "问卷列表获取失败",
 		})
@@ -278,25 +351,37 @@ func ShowQuestionaires(ctx *gin.Context) {
 func ShowQuestions(ctx *gin.Context) {
 	WjId := ctx.Query("id")
 	if WjId == "" {
+		// if err := ctx.BindJSON(&WjId); err != nil {
+		// 	ctx.JSON(http.StatusOK, gin.H{
+		// 		"code": 422,
+		// 		"msg":  "输入格式不符合要求",
+		// 	})
+		// 	return
+		// }
 		WjId = ctx.PostForm("WjId")
+		fmt.Println(WjId)
 	}
 	var ques []model.Question
 	if err := database.DB.Where("Wj_Id=?", WjId).Find(&ques).Error; err != nil {
-		ctx.JSON(http.StatusUnprocessableEntity, gin.H{
+		ctx.JSON(http.StatusOK, gin.H{
 			"code": 422,
 			"msg":  "问卷问题获取失败",
 		})
 		return
 	} else {
-		var question []QuesJson
+		var question []QuesRetJson
 		for _, item := range ques {
-			var quesItem QuesJson
+			var quesItem QuesRetJson
+			quesItem.WjID = item.WjId
 			quesItem.QuesID = item.ID
 			quesItem.Title = item.Title
 			quesItem.Type = item.QuesType
+			if quesItem.Type == 2 {
+				quesItem.CheckboxValue = make([]string, 0)
+			}
 			var options []model.Option
 			if err := database.DB.Where("question_id=?", item.ID).Find(&options).Error; err != nil {
-				ctx.JSON(http.StatusUnprocessableEntity, gin.H{
+				ctx.JSON(http.StatusOK, gin.H{
 					"code": 422,
 					"msg":  "问题选项获取失败",
 				})
