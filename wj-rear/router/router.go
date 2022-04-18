@@ -42,14 +42,20 @@ func Run() {
 			authed.GET("/show/ShowQuestionaires", controller.ShowQuestionaires)
 
 			authed.POST("/show/ShowQuestions", controller.ShowQuestions)
+
 		}
 
 		answer := api.Group("/answer")
 		{
-			answer.GET("/GetQuestionaire", controller.GetQuestionaire)
+			answer.POST("/GetQuestionaire", controller.GetQuestionaire)
 
 			answer.POST("/SubmitQues", controller.SubmitQues)
 		}
+
+		analysis := api.Group("/analysis")
+		{
+			analysis.POST("/AnalysisData", controller.AnalysisData)
+		} //需要鉴权，测试暂时置于此处
 	}
 
 	r.Run(":3030")

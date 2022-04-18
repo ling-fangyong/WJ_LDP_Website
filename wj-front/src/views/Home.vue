@@ -43,6 +43,7 @@
                 </el-tabs>
             </el-col>
 
+            <!-- 增加问卷 -->
             <el-dialog title="创建问卷" :visible.sync="AddQuesShow" :close-on-click-modal="false" class="AddQues">
                 <el-form ref="form" :model="AddWjmodel" label-width="80px">
                     <el-form-item label="问卷标题" style="width: 100%;" required>
@@ -56,6 +57,21 @@
                     <el-button style = "margin-left : 10px;" @click="AddQuesShow=false">取消</el-button>
                     <el-button type = "primary" style="margin-left : 10px;" @click = "addWjConform">确定</el-button>
                 </div>
+            </el-dialog>
+
+            <!-- 分享问卷 -->
+            <el-dialog :title="分享问卷" :visible.sync="ShareQuesShow" :close-on-click-modal="true" class="ShareQues">
+                <el-form ref="form" :model="shareInfo" label-with="80px">
+                    <el-form-item label="问卷链接" style="width:100%">
+                        <el-row :span="16">
+                            <el-input v-model="shareInfo.url" readonly></el-input>
+                        </el-row>
+                        <el-row :span="8">
+                            <el-button style="margin-left:5px;" v-clipboard:copy="shareInfo.url" v-clipboard:success="copySuccess" v-clipboard:error="copyError">复制</el-button>
+                            <el-button style="margin-left:5px;" @click="OpenUrl">打开</el-button>
+                        </el-row>
+                    </el-form-item>
+                </el-form>
             </el-dialog>
         </el-row>
     </div>
@@ -77,6 +93,10 @@ export default ({
             AddQuesShow:false,//添加问卷弹窗
             ShareQuesShow:false,//分享问卷展示
             loading:false,//加入延迟，避免渲染为完成导致错误显示
+            shareInfo:{
+                url:'',
+            },
+            QuesShareShow:false,
 
             AddWjmodel:{
                 wjid:0,
@@ -217,11 +237,34 @@ export default ({
             )
         },
 
+        ShareWj(){
+            console.log("test");
+            this.shareInfo.url=window.location.origin+'/display/'+this.NowSelect.wjid;
+            this.ShareQuesShow=true;
+            console.log(this.ShareQuesShow)
+        },
+        copySuccess(e){
+            console.log(e)
+            this.$message({
+                type:'success',
+                message:"复制成功",
+            })
+        },
+        copyError(e){
+            console.log(e)
+            this.$message({
+                type:'error',
+                message:'复制失败',
+            })
+        },
+
         OpenQues(index){
             this.ActiveOp = (index+1).toString();
             this.lookQuestionaire();
         },
-        
+        OpenUrl(){
+            window.open(this.shareInfo.url);
+        },
         lookQuestionaire(){
             // console.log(this.NowSelect.wjid)
             // console.log(this.NowSelect.title)

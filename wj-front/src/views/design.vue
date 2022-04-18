@@ -33,7 +33,6 @@
             <br>
             <br>
             <br>
-
         <el-dialog :title="AddTitle" :visible.sync="QuesAddShow" :close-on-click-modal="false" class="AddQues">
             <el-form ref="form" :model="AddQuesModel" label-width="80px">
                 <el-form-item label="题目类型" style="width:100%">
@@ -64,7 +63,9 @@
                 <el-button style="margin-left:10px;" @click="AddQuesShow=false">取消</el-button>
                 <el-button type="primary" style="margin-left:10px;" @click = "AddQuesCheck">确认</el-button>
             </div>
-        </el-dialog> 
+        </el-dialog>
+
+
     </div>
 </template>
 
@@ -122,7 +123,7 @@ export default {
             this.QuesAndOp=[];
             this.loading=true;
             var Formdata = new FormData();
-            Formdata.append('WjId',this.WjId.toString())
+            Formdata.append('WjId',this.WjId.toString());
             API.ShowQuestions(Formdata).then(res=>{
                 if(res.code==200){
                     this.$message({
@@ -237,6 +238,7 @@ export default {
         typeSelect(value){
             this.AddQuesModel.type=value;
         },
+
     },
 }
 </script>

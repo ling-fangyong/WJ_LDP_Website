@@ -26,8 +26,9 @@ type QuesJson struct {
 }
 
 type OptionJson struct {
-	Title string `json:"title"`
-	OpID  uint   `json:"opId"`
+	Title  string `json:"title"`
+	OpID   uint   `json:"opId"`
+	CalcOp int    `json:"CalcOp"`
 }
 type DeleteJson struct {
 	WjID   uint `json:"WjId"`
@@ -40,8 +41,8 @@ type QuesRetJson struct {
 	QuesID        uint         `json:"QuesId"`
 	Type          int8         `json:"type"`
 	Title         string       `json:"title"`
-	RadioValue    string       `json:"radiovalue"`
-	CheckboxValue []string     `json:"checkboxValue"`
+	RadioValue    int          `json:"radiovalue"`
+	CheckboxValue []int        `json:"checkboxValue"`
 	Textvalue     string       `json:"textValue"`
 }
 
@@ -376,8 +377,10 @@ func ShowQuestions(ctx *gin.Context) {
 			quesItem.QuesID = item.ID
 			quesItem.Title = item.Title
 			quesItem.Type = item.QuesType
-			if quesItem.Type == 2 {
-				quesItem.CheckboxValue = make([]string, 0)
+			if quesItem.Type == 1 {
+				quesItem.RadioValue = 0
+			} else if quesItem.Type == 2 {
+				quesItem.CheckboxValue = make([]int, 0)
 			}
 			var options []model.Option
 			if err := database.DB.Where("question_id=?", item.ID).Find(&options).Error; err != nil {

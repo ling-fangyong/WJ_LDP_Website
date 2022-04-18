@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"log"
+	"fmt"
 	"net/http"
 	"wj_rear/database"
 	"wj_rear/model"
@@ -10,48 +10,63 @@ import (
 )
 
 type GetQuesJson struct {
-	Questionnaire QuestionaireJson
-	Ques          []QuesJson
+	Questionaire QuestionaireJson `json:"Questionaire"`
+	Ques         []QuesRetJson    `json:"Ques"`
 }
 
 type AnsJson struct {
-	WjId uint `json:"WjId"`
-	Ans  []struct {
-		QuesId    uint   `json:"QuesID"`
-		AnsInt    uint   `json:"AnsInt"`
-		AnsString string `json:"AnsString"`
-		QuesType  int8   `json:"QuesType"`
-		//TODO:暂时完成选择题，填空题只允许数值型数据进行分析，此处还需要存储值范围
-	} `json:"ans"`
+	WjId      uint          `json:"WjId"`
+	QuesAndOp []QuesRetJson `json:"QuesAndOp"`
 }
+
+// type AnsJson struct {
+// 	WjId uint `json:"WjId"`
+// 	Ans  []struct {
+// 		QuesId    uint   `json:"QuesID"`
+// 		AnsInt    uint   `json:"AnsInt"`
+// 		AnsString string `json:"AnsString"`
+// 		QuesType  int8   `json:"QuesType"`
+// 		//TODO:暂时完成选择题，填空题只允许数值型数据进行分析，此处还需要存储值范围
+// 	} `json:"ans"`
+// }
 
 func GetQuestionaire(ctx *gin.Context) {
 	WjId := ctx.PostForm("WjId")
+	// fmt.Println(WjId)
 	var QuestionaireModel model.Questionnaire
 	if err := database.DB.First(&QuestionaireModel, WjId).Error; err != nil {
-		ctx.JSON(http.StatusUnprocessableEntity, gin.H{
+		ctx.JSON(http.StatusOK, gin.H{
 			"code": 422,
 			"msg":  "问卷获取失败",
 		})
 		return
 	}
 	var ques []model.Question
+	// fmt.Println(WjId)
 	if err := database.DB.Where("Wj_Id=?", WjId).Find(&ques).Error; err != nil {
-		ctx.JSON(http.StatusUnprocessableEntity, gin.H{
+		ctx.JSON(http.StatusOK, gin.H{
 			"code": 422,
 			"msg":  "问卷问题获取失败",
 		})
 		return
 	} else {
-		var question []QuesJson
+		var question []QuesRetJson
+		// fmt.Println("ques")
+		// fmt.Println(ques)
 		for _, item := range ques {
-			var quesItem QuesJson
+			var quesItem QuesRetJson
 			quesItem.QuesID = item.ID
 			quesItem.Title = item.Title
 			quesItem.Type = item.QuesType
+			quesItem.WjID = item.WjId
+			if quesItem.Type == 1 {
+				quesItem.RadioValue = 0
+			} else if quesItem.Type == 2 {
+				quesItem.CheckboxValue = make([]int, 0)
+			}
 			var options []model.Option
 			if err := database.DB.Where("question_id=?", item.ID).Find(&options).Error; err != nil {
-				ctx.JSON(http.StatusUnprocessableEntity, gin.H{
+				ctx.JSON(http.StatusOK, gin.H{
 					"code": 422,
 					"msg":  "问题选项获取失败",
 				})
@@ -68,9 +83,9 @@ func GetQuestionaire(ctx *gin.Context) {
 			}
 		}
 		var QuesShow GetQuesJson
-		QuesShow.Questionnaire.WjId = QuestionaireModel.ID
-		QuesShow.Questionnaire.Title = QuestionaireModel.Title
-		QuesShow.Questionnaire.Desc = QuestionaireModel.Desc
+		QuesShow.Questionaire.WjId = QuestionaireModel.ID
+		QuesShow.Questionaire.Title = QuestionaireModel.Title
+		QuesShow.Questionaire.Desc = QuestionaireModel.Desc
 		QuesShow.Ques = question
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": 200,
@@ -80,54 +95,110 @@ func GetQuestionaire(ctx *gin.Context) {
 	}
 }
 
+// func SubmitQues(ctx *gin.Context) {
+// 	var ansJson AnsJson
+// 	if err := ctx.BindJSON(&ansJson); err != nil {
+// 		ctx.JSON(http.StatusOK, gin.H{
+// 			"code": "422",
+// 			"msg":  "输入格式出错",
+// 		})
+// 		return
+// 	}
+
+// 	//判断问卷是否存在
+// 	var count int64
+// 	if err := database.DB.Model(&model.Questionnaire{}).Where("Id=?", ansJson.WjId).Count(&count).Error; err != nil || count < 1 {
+// 		ctx.JSON(http.StatusOK, gin.H{
+// 			"code": "422",
+// 			"msg":  "问卷不存在或查询失败",
+// 		})
+// 		return
+// 	}
+// 	log.Println("Ans  ", ansJson)
+// 	tx := database.DB.Begin()
+// 	for _, item := range ansJson.Ans {
+// 		var ans model.Answer
+// 		ans.WjId = ansJson.WjId
+// 		ans.QuesType = item.QuesType
+// 		ans.QuestionId = item.QuesId
+// 		if item.QuesType == 1 || item.QuesType == 2 { //TODO:当类型为2时还要增加两个变量代表数值范围，暂时先完成选择题测试
+// 			ans.AnsInt = item.AnsInt
+// 			if err := database.DB.Create(&ans).Error; err != nil {
+// 				ctx.JSON(http.StatusOK, gin.H{
+// 					"code": "422",
+// 					"msg":  "答案创建失败",
+// 				})
+// 				tx.Rollback()
+// 				return
+// 			}
+// 		} else if item.QuesType == 3 {
+// 			ans.AnsString = item.AnsString
+
+// 			if err := database.DB.Create(&ans).Error; err != nil {
+// 				ctx.JSON(http.StatusOK, gin.H{
+// 					"code": "422",
+// 					"msg":  "答案创建失败",
+// 				})
+// 				tx.Rollback()
+// 				return
+// 			}
+// 		}
+// 	}
+// 	tx.Commit()
+// 	ctx.JSON(http.StatusOK, gin.H{
+// 		"code": 200,
+// 		"msg":  "问卷提交成功",
+// 	})
+// }
+
 func SubmitQues(ctx *gin.Context) {
 	var ansJson AnsJson
 	if err := ctx.BindJSON(&ansJson); err != nil {
-		ctx.JSON(http.StatusUnprocessableEntity, gin.H{
+		ctx.JSON(http.StatusOK, gin.H{
 			"code": "422",
 			"msg":  "输入格式出错",
 		})
 		return
 	}
-
-	//判断问卷是否存在
 	var count int64
 	if err := database.DB.Model(&model.Questionnaire{}).Where("Id=?", ansJson.WjId).Count(&count).Error; err != nil || count < 1 {
-		ctx.JSON(http.StatusUnprocessableEntity, gin.H{
+		ctx.JSON(http.StatusOK, gin.H{
 			"code": "422",
 			"msg":  "问卷不存在或查询失败",
 		})
 		return
 	}
-	log.Println("Ans  ", ansJson)
 	tx := database.DB.Begin()
-	for _, item := range ansJson.Ans {
-		var ans model.Answer
-		ans.WjId = ansJson.WjId
-		ans.QuesType = item.QuesType
-		ans.QuestionId = item.QuesId
-		if item.QuesType == 1 || item.QuesType == 2 { //TODO:当类型为2时还要增加两个变量代表数值范围，暂时先完成选择题测试
-			ans.AnsInt = item.AnsInt
+	for _, item := range ansJson.QuesAndOp {
+		if item.Type == 1 {
+			var ans model.Answer
+			ans.QuestionId = item.QuesID
+			ans.OpId = item.Options[item.RadioValue].OpID
+			fmt.Println(ans)
 			if err := database.DB.Create(&ans).Error; err != nil {
-				ctx.JSON(http.StatusUnprocessableEntity, gin.H{
+				ctx.JSON(http.StatusOK, gin.H{
 					"code": "422",
 					"msg":  "答案创建失败",
 				})
 				tx.Rollback()
 				return
 			}
-		} else if item.QuesType == 3 {
-			ans.AnsString = item.AnsString
-
-			if err := database.DB.Create(&ans).Error; err != nil {
-				ctx.JSON(http.StatusUnprocessableEntity, gin.H{
-					"code": "422",
-					"msg":  "答案创建失败",
-				})
-				tx.Rollback()
-				return
+		} else if item.Type == 2 {
+			for _, checkValue := range item.CheckboxValue {
+				var ans model.Answer
+				ans.QuestionId = item.QuesID
+				ans.OpId = item.Options[checkValue].OpID
+				fmt.Println(ans)
+				if err := database.DB.Create(&ans).Error; err != nil {
+					ctx.JSON(http.StatusOK, gin.H{
+						"code": "422",
+						"msg":  "答案创建失败",
+					})
+					tx.Rollback()
+					return
+				}
 			}
-		}
+		} //TODO:type=3的连续型数据以及键值型待做
 	}
 	tx.Commit()
 	ctx.JSON(http.StatusOK, gin.H{
