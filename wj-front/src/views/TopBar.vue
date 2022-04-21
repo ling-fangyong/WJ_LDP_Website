@@ -82,6 +82,7 @@ export default {
         sessionStorage.clear();
         this.state();
         this.toLogin();
+        
       })
     }
   },

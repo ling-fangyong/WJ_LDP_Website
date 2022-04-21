@@ -16,7 +16,9 @@ type Question struct {
 	WjId       uint   //问卷ID
 	Title      string //问题
 	QuesType   int8   //1代表单选题 2代表多选题 3代表数值填写  前两者1、2可以对应离散型数据 3代表连续型数据需要数据范围
-	OptionNum  int8   //选项个数
+	// OptionNum  int8   //选项个数
+	DataMin float64 //连续型数据最大值
+	DataMax float64 //连续型数据最小值
 }
 
 //选项表
@@ -40,6 +42,6 @@ type Answer struct {
 	gorm.Model
 	QuestionId uint //获取统计答案时，问题类型直接决定答案类型
 	OpId       uint //选择题填写该Id
-	AnsInt     uint //填空题填写该答案 由于会经过变换值只为0 1
+	AnsInt     int  //填空题填写该答案 由于会经过变换值只为-1 1
 	//键值型再说
 }

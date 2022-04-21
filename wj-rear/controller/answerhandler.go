@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"wj_rear/database"
 	"wj_rear/model"
 
@@ -42,7 +43,8 @@ func GetQuestionaire(ctx *gin.Context) {
 		return
 	}
 	var ques []model.Question
-	// fmt.Println(WjId)
+	fmt.Println(WjId)
+
 	if err := database.DB.Where("Wj_Id=?", WjId).Find(&ques).Error; err != nil {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": 422,
@@ -52,13 +54,15 @@ func GetQuestionaire(ctx *gin.Context) {
 	} else {
 		var question []QuesRetJson
 		// fmt.Println("ques")
-		// fmt.Println(ques)
+		fmt.Println(ques)
 		for _, item := range ques {
 			var quesItem QuesRetJson
 			quesItem.QuesID = item.ID
 			quesItem.Title = item.Title
 			quesItem.Type = item.QuesType
 			quesItem.WjID = item.WjId
+			quesItem.DataMax = item.DataMax
+			quesItem.DataMin = item.DataMin
 			if quesItem.Type == 1 {
 				quesItem.RadioValue = 0
 			} else if quesItem.Type == 2 {
@@ -168,6 +172,7 @@ func SubmitQues(ctx *gin.Context) {
 		})
 		return
 	}
+
 	tx := database.DB.Begin()
 	for _, item := range ansJson.QuesAndOp {
 		if item.Type == 1 {
@@ -198,7 +203,20 @@ func SubmitQues(ctx *gin.Context) {
 					return
 				}
 			}
-		} //TODO:type=3的连续型数据以及键值型待做
+		} else if item.Type == 3 {
+			var ans model.Answer
+			ans.QuestionId = item.QuesID
+			ans.AnsInt, _ = strconv.Atoi(item.Textvalue)
+			if err := database.DB.Create(&ans).Error; err != nil {
+				ctx.JSON(http.StatusOK, gin.H{
+					"code": "422",
+					"msg":  "答案创建失败",
+				})
+				tx.Rollback()
+				return
+			}
+		}
+		//TODO:type=3的连续型数据以及键值型待做
 	}
 	tx.Commit()
 	ctx.JSON(http.StatusOK, gin.H{

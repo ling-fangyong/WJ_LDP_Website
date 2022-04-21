@@ -1,6 +1,7 @@
 package algorithm
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
 	"time"
@@ -31,10 +32,8 @@ func GRR(data []int, d int, epsilon float64) []int {
 		num += cnt
 	}
 
-	// fmt.Println(res)
-	// fmt.Println(num)
-
 	for i := range res {
+		fmt.Println(data[i])
 		res[i] = int((float64(data[i]) - float64(num)*q) / (p - q))
 	}
 	// fmt.Println(res)

@@ -2,6 +2,7 @@ package controller
 
 import (
 	"net/http"
+	"strconv"
 	"wj_rear/database"
 	"wj_rear/model"
 
@@ -11,6 +12,11 @@ import (
 )
 
 const epsilon = 1
+
+type result struct {
+	ans_int int
+	ansCalc int
+}
 
 func AnalysisData(ctx *gin.Context) {
 	WjId := ctx.PostForm("WjId")
@@ -31,7 +37,6 @@ func AnalysisData(ctx *gin.Context) {
 			quesItem.QuesID = item.ID
 			quesItem.Title = item.Title
 			quesItem.Type = item.QuesType
-
 			// fmt.Println(quesItem.QuesID)
 			// fmt.Println(quesItem.Options)
 			if quesItem.Type == 1 || quesItem.Type == 2 {
@@ -60,8 +65,43 @@ func AnalysisData(ctx *gin.Context) {
 					// fmt.Println(quesItem.Options)
 					question = append(question, quesItem)
 				}
+			} else if quesItem.Type == 3 {
+				quesItem.DataMax = item.DataMax
+				quesItem.DataMin = item.DataMin
+				var res []result
+				if err := database.DB.Raw("SELECT ans_int,COUNT(ans_int) AS num FROM `answers` WHERE question_id = ? GROUP BY ans_int", quesItem.QuesID).Find(&res).Error; err != nil {
+					ctx.JSON(http.StatusOK, gin.H{
+						"code": 422,
+						"msg":  "问题答案获取失败",
+					})
+					return
+				} else {
+					if len(res) != 0 {
+						var tem = make([]int, 2)
+						tem[0] = res[0].ansCalc
+						if len(res) == 2 {
+							tem[1] = res[1].ansCalc
+						} else {
+							tem[1] = 0
+						}
+						ans_int0 := res[0].ans_int
+						var ans_int1 int
+						if ans_int0 == 0 {
+							ans_int1 = 1
+						} else {
+							ans_int1 = 0
+						}
+						copy(tem, algorithm.GRR(tem, 2, epsilon))
+						value := (float64(ans_int0*tem[0])+float64(ans_int1*tem[1]))*((item.DataMax-item.DataMin)/2) + (item.DataMax+item.DataMin)/2
+						quesItem.Textvalue = strconv.FormatFloat(value, 'E', -1, 64)
+					} else {
+						quesItem.Textvalue = "不存在填写值"
+					}
+					question = append(question, quesItem)
+				}
 			}
 		}
+		//fmt.Println(question)
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": 200,
 			"msg":  "获取问题列表成功",

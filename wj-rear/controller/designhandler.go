@@ -23,6 +23,8 @@ type QuesJson struct {
 	QuesID  uint         `json:"QuesId"`
 	Type    int8         `json:"type"`
 	Title   string       `json:"title"`
+	DataMin float64      `json:"datamin"` //连续型数据最大值
+	DataMax float64      `json:"datamax"` //连续型数据最小值
 }
 
 type OptionJson struct {
@@ -44,6 +46,8 @@ type QuesRetJson struct {
 	RadioValue    int          `json:"radiovalue"`
 	CheckboxValue []int        `json:"checkboxValue"`
 	Textvalue     string       `json:"textValue"`
+	DataMin       float64      `json:"DataMin"` //连续型数据最大值
+	DataMax       float64      `json:"DataMax"` //连续型数据最小值
 }
 
 func UpdateQuestionaire(ctx *gin.Context) {
@@ -170,6 +174,8 @@ func UpdateQuestion(ctx *gin.Context) {
 		//更新问题
 		ques.Title = quesfront.Title
 		ques.QuesType = quesfront.Type
+		ques.DataMin = quesfront.DataMin
+		ques.DataMax = quesfront.DataMax
 		database.DB.Save(&ques)
 
 		hash := make(map[uint]bool)
@@ -216,6 +222,8 @@ func UpdateQuestion(ctx *gin.Context) {
 		ques.WjId = quesfront.WjID
 		ques.Title = quesfront.Title
 		ques.QuesType = quesfront.Type
+		ques.DataMin = quesfront.DataMin
+		ques.DataMax = quesfront.DataMax
 		database.DB.Create(&ques)
 		for _, option := range quesfront.Options {
 			var op model.Option
@@ -377,6 +385,8 @@ func ShowQuestions(ctx *gin.Context) {
 			quesItem.QuesID = item.ID
 			quesItem.Title = item.Title
 			quesItem.Type = item.QuesType
+			quesItem.DataMax = item.DataMax
+			quesItem.DataMin = item.DataMin
 			if quesItem.Type == 1 {
 				quesItem.RadioValue = 0
 			} else if quesItem.Type == 2 {

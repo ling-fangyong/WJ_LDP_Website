@@ -10,6 +10,7 @@
                 <div class="quesTitle">
                 <span style="color: black; margin-right:3px;"> {{(index+1)+'.'}}  </span>
                 {{item.title}}
+                <span v-show="item.type==3">&nbsp;&nbsp;&nbsp;&nbsp;(MinValue:&nbsp;{{item.DataMin}}&nbsp;&nbsp;&nbsp;&nbsp;MaxValue:&nbsp;{{item.DataMax}})</span>
                 </div>
                 <div style="float:right;">
                     <el-button style="padding:2px" type="text" @click="editQues(item)">编辑</el-button>
@@ -27,6 +28,9 @@
                         <el-checkbox :label="index" style="margin: 5px;">{{option.title}}</el-checkbox>
                     </div>
                 </el-checkbox-group>
+            </template>
+            <template v-if=" item.type == 3">
+                <el-input-number v-model="item.textvalue" style="width:80%" :step="0.01" :precision="2" :min="item.DataMin" :max="item.DataMax"></el-input-number>
             </template>
         </el-card>
         <el-button icon="el-icon-circle-plus" @click="AddQues" style="margin-top:10px;">添加题目</el-button>
@@ -55,6 +59,17 @@
                         </el-row>
                     </el-form-item>
                     <el-button type="primary" plain @click="AddOp">增加选项</el-button>
+                </template>
+                <template v-if="AddQuesModel.type == 3">
+                    <el-form-item label="取值下限">
+                        <el-input-number v-model="AddQuesModel.DataMin" style="width:80%" :step="0.01" :precision="2"></el-input-number>
+                    </el-form-item>
+                    <el-form-item label="取值上限">
+                        <el-input-number v-model="AddQuesModel.DataMax" style="width:80%" :step="0.01" :precision="2"></el-input-number>
+                    </el-form-item>
+                    <el-form-item label="填空">
+                        <el-input type="textarea" style="width: 80%" ></el-input>
+                    </el-form-item>
                 </template>
             </el-form>
             <br>
@@ -91,6 +106,8 @@ export default {
                 QuesId:0,
                 type:0,
                 title:'',
+                DataMin:0.0,
+                DataMax:0.0,
             },
             allType:[
                 {
@@ -166,12 +183,21 @@ export default {
                 radioValue:'',
                 checkboxValue:[],
                 textvalue:'',
+                DataMin:0.0,
+                DataMax:0.0,
             };
             this.AddQuesModel.WjId=this.WjId;
             this.QuesAddShow=true;
         },
         AddQuesCheck(){
-            console.log(this.AddQuesModel.WjId);
+            //console.log(this.AddQuesModel.WjId);
+            console.log(this.AddQuesModel.DataMin)
+            console.log(this.AddQuesModel.DataMax)
+            this.AddQuesModel.DataMin = parseFloat(this.AddQuesModel.DataMin)
+            this.AddQuesModel.DataMax = parseFloat(this.AddQuesModel.DataMax)
+            console.log(this.AddQuesModel.DataMin)
+            console.log(this.AddQuesModel.DataMax)
+            //console.log(this.AddQuesModel)
             API.UpdateQuestion(this.AddQuesModel).then(res=>{
                 if(res.code==200){
                     this.$message({
@@ -239,6 +265,13 @@ export default {
             this.AddQuesModel.type=value;
         },
 
+        changeInputPt2 (e) {
+            //console.log(e.target.value)
+            if ((e.target.value.indexOf('.') >= 0)) {
+              e.target.value = e.target.value.substring(0, e.target.value.indexOf('.') + 3) // 这里采用截取 既可以限制第三位小数输入 也解决了数字输入框默认四舍五入问题
+            }
+            //console.log(e.target.value)
+        },
     },
 }
 </script>

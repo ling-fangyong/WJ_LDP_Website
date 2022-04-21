@@ -12,6 +12,7 @@
                 <div class="quesTitle">
                 <span style="color: black; margin-right:3px;"> {{(index+1)+'.'}}  </span>
                 {{item.title}}
+                <span v-show="item.type==3">&nbsp;&nbsp;&nbsp;&nbsp;(MinValue:&nbsp;{{item.DataMin}}&nbsp;&nbsp;&nbsp;&nbsp;MaxValue:&nbsp;{{item.DataMax}})</span>
                 </div>
              </div>
              <template v-if=" item.type == 1 ">
@@ -25,6 +26,9 @@
                         <el-checkbox :label="index" style="margin: 5px;">{{option.title}}</el-checkbox>
                     </div>
                 </el-checkbox-group>
+            </template>
+            <template v-if=" item.type == 3">
+                <el-input-number v-model="item.textValue" style="width:80%" :step="0.01" :precision="2" :min="item.DataMin" :max="item.DataMax"></el-input-number>
             </template>
         </el-card>
         <el-button type="primary" style="margin: 5px;" @click="submitQues" :loading="Loading">提交</el-button>
@@ -102,20 +106,35 @@ export default {
             for(var i=0,len=this.QuesAndOp.length;i<len;i++){
                 if(this.QuesAndOp[i].type == 1){//单选题变换
                     this.QuesAndOp[i].radioValue = this.Opchange(this.QuesAndOp[i].options.length,this.QuesAndOp[i].radioValue);
-                }else if(this.QuesAndOp[i].type == 2){
+                }else if(this.QuesAndOp[i].type == 2){//暂时不用
                     var t=[];
                     // console.log("change");
                     // console.log(this.QuesAndOp[i].checkboxValue);
                     for(const item in this.QuesAndOp[i].checkboxValue){
-                        
                         t.push(this.Opchange(this.QuesAndOp[i].options.length,item));
                     }
                     console.log(t);
                     this.QuesAndOp[i].checkboxValue = t;
+                }else if(this.QuesAndOp[i].type == 3){
+                    //首先做映射
+                    var rel = ["-1","1"]
+                    console.log(this.QuesAndOp[i].textValue)
+                    var t = ((this.QuesAndOp[i].textValue) - (this.QuesAndOp[i].DataMax + this.QuesAndOp[i].DataMin)/2)/((this.QuesAndOp[i].DataMax - this.QuesAndOp[i].DataMin)/2)
+                    console.log(t)
+                    var p = (1+t)/2
+                    console.log(p)
+                    if(Math.random() > p){
+                        t = 0
+                    }else{
+                        t = 1 
+                    }
+                    // console.log(t)
+                    this.QuesAndOp[i].textValue = rel[this.Opchange(2,t)]
+                    // console.log(this.QuesAndOp[i].textValue)
                 }
             }
             // console.log("change");
-            // console.log(this.QuesAndOp);
+            //  console.log(this.QuesAndOp);
 
             //后端交互
             this.SubmitModel.QuesAndOp = this.QuesAndOp;

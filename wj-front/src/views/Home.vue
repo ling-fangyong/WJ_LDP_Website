@@ -40,6 +40,12 @@
                             <design ref="design" v-show="NowSelect.wjid != 0 && NowSelect.wjid !=null"></design>
                         </div>
                     </el-tab-pane>
+                    <el-tab-pane label="数据分析" name="sjfx">
+                        <div class="WjAnalysis">
+                            <div v-show="NowSelect.wjid == 0 || NowSelect.wjid == null">请先选择问卷</div>
+                            <datashow ref="datashow" v-show="NowSelect.wjid != 0 && NowSelect.wjid !=null"></datashow>
+                        </div>
+                    </el-tab-pane>
                 </el-tabs>
             </el-col>
 
@@ -81,9 +87,11 @@
 
 import  * as API from '../api/question';
 import Design from './design';
+import Datashow from './datashow.vue';
 export default ({
     components:{
         Design,
+        Datashow,
     },
     data(){
         return{
@@ -113,7 +121,6 @@ export default ({
     computed:{
         NowSelect(){
             //console.log(this.ActiveOp)
-            let now = this.WjList[this.ActiveOp -1]
             if(this.WjList==null || this.WjList.length == 0){
                 return {
                     wjid:null,
@@ -122,6 +129,7 @@ export default ({
                 }
             }
             //console.log(now)
+             let now = this.WjList[this.ActiveOp -1]
             return {
                 wjid : now.wjid,
                 title : now.title,
@@ -272,6 +280,7 @@ export default ({
             
             //this.$refs.Design.init(this.NowSelect.WjId,this.NowSelect.title,this.NowSelect.desc);
             this.$refs.design.init(this.NowSelect.wjid,this.NowSelect.title,this.NowSelect.desc);
+            this.$refs.datashow.init(this.NowSelect.wjid);
             // this.$nextTick(()=>{
             //     this.$refs.design.init(this.NowSelect.wjid,this.NowSelect.title,this.NowSelect.desc);
             // })
