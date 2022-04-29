@@ -150,6 +150,7 @@ export default {
                     this.QuesAndOp = res.data;
                     console.log(this.QuesAndOp);
                     this.loading=false;
+                    
                 }else{
                     this.$message({
                         type:"error",

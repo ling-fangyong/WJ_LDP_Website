@@ -189,18 +189,53 @@ func SubmitQues(ctx *gin.Context) {
 				return
 			}
 		} else if item.Type == 2 {
+			// //理论上checkValue一定只有一个值，但是懒得修改了
+			// for _, checkValue := range item.CheckboxValue {
+			// 	var ans model.Answer
+			// 	//当出现超过选项数值选项值时跳过
+			// 	if checkValue >= len(item.Options) {
+			// 		continue
+			// 	}
+			// 	ans.QuestionId = item.QuesID
+			// 	ans.OpId = item.Options[checkValue].OpID
+			// 	fmt.Println(ans)
+			// 	if err := database.DB.Create(&ans).Error; err != nil {
+			// 		ctx.JSON(http.StatusOK, gin.H{
+			// 			"code": "422",
+			// 			"msg":  "答案创建失败",
+			// 		})
+			// 		tx.Rollback()
+			// 		return
+			// 	}
+			// }
 			for _, checkValue := range item.CheckboxValue {
 				var ans model.Answer
-				ans.QuestionId = item.QuesID
-				ans.OpId = item.Options[checkValue].OpID
-				fmt.Println(ans)
-				if err := database.DB.Create(&ans).Error; err != nil {
-					ctx.JSON(http.StatusOK, gin.H{
-						"code": "422",
-						"msg":  "答案创建失败",
-					})
-					tx.Rollback()
-					return
+				//当出现超过选项数值选项值时跳过
+				if checkValue >= len(item.Options) {
+					temOpId := item.Options[checkValue-len(item.Options)].OpID
+					var temOp model.Option
+					if err := database.DB.Find(&temOp, temOpId).Error; err != nil {
+						ctx.JSON(http.StatusOK, gin.H{
+							"code": "422",
+							"msg":  "查询失败",
+						})
+						tx.Rollback()
+						return
+					}
+					temOp.DummyValueCnt++
+					database.DB.Save(&temOp)
+				} else {
+					ans.QuestionId = item.QuesID
+					ans.OpId = item.Options[checkValue].OpID
+					fmt.Println(ans)
+					if err := database.DB.Create(&ans).Error; err != nil {
+						ctx.JSON(http.StatusOK, gin.H{
+							"code": "422",
+							"msg":  "答案创建失败",
+						})
+						tx.Rollback()
+						return
+					}
 				}
 			}
 		} else if item.Type == 3 {
@@ -216,7 +251,7 @@ func SubmitQues(ctx *gin.Context) {
 				return
 			}
 		}
-		//TODO:type=3的连续型数据以及键值型待做
+		//TODO:type=3的连续型数据以及键值型待做，改为集合型，由多选题实现
 	}
 	tx.Commit()
 	ctx.JSON(http.StatusOK, gin.H{

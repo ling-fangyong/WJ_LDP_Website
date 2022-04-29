@@ -24,8 +24,9 @@ type Question struct {
 //选项表
 type Option struct {
 	gorm.Model
-	QuestionId uint   //问题ID
-	Title      string //选项
+	QuestionId    uint   //问题ID
+	Title         string //选项
+	DummyValueCnt uint   //存储着多选时的虚假值
 }
 
 //回答表

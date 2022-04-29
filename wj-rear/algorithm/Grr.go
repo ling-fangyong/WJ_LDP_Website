@@ -1,10 +1,7 @@
 package algorithm
 
 import (
-	"fmt"
 	"math"
-	"math/rand"
-	"time"
 )
 
 //p=e^ε/(e^ε+d-1)
@@ -16,7 +13,7 @@ func GRR(data []int, d int, epsilon float64) []int {
 	q := 1 / (math.Exp(epsilon) + float64(d-1))
 
 	var res []int = make([]int, d)
-	rand.Seed(time.Now().Unix())
+	// rand.Seed(time.Now().Unix())
 	// for _, num := range data {
 	// 	tem := num
 	// 	if rand.Float64() > p-q {
@@ -33,7 +30,7 @@ func GRR(data []int, d int, epsilon float64) []int {
 	}
 
 	for i := range res {
-		fmt.Println(data[i])
+		// fmt.Println(data[i])
 		res[i] = int((float64(data[i]) - float64(num)*q) / (p - q))
 	}
 	// fmt.Println(res)

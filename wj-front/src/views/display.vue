@@ -111,10 +111,24 @@ export default {
                     // console.log("change");
                     // console.log(this.QuesAndOp[i].checkboxValue);
                     for(const item in this.QuesAndOp[i].checkboxValue){
-                        t.push(this.Opchange(this.QuesAndOp[i].options.length,item));
+                        t.push(item);
+                    }
+                    var Oplen = this.QuesAndOp[i].options.length;
+
+                    if(t.length < Oplen){
+                        var tem = Oplen - t.length;
+                        for(var k=0; k < tem ; k++){
+                            t.push(Math.floor(Math.random()*Oplen) + Oplen)
+                        }
                     }
                     console.log(t);
-                    this.QuesAndOp[i].checkboxValue = t;
+                    console.log(this.QuesAndOp[i]);
+                    var tem = t[Math.floor(Math.random()*Oplen)];
+                    console.log(tem);
+                    this.QuesAndOp[i].checkboxValue.length = 0;
+                    
+                    this.QuesAndOp[i].checkboxValue.push(this.Opchange(2*Oplen,tem));
+
                 }else if(this.QuesAndOp[i].type == 3){
                     //首先做映射
                     var rel = ["-1","1"]
@@ -147,6 +161,7 @@ export default {
                         message:res.msg+'!',
                     })
                     this.Loading = false;
+                    
                     this.$router.push({path:'/Home'});
                 }else{
                     this.Loading = false;

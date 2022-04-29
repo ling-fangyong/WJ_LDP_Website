@@ -28,9 +28,10 @@ type QuesJson struct {
 }
 
 type OptionJson struct {
-	Title  string `json:"title"`
-	OpID   uint   `json:"opId"`
-	CalcOp int    `json:"CalcOp"`
+	Title         string `json:"title"`
+	OpID          uint   `json:"opId"`
+	CalcOp        int    `json:"CalcOp"`
+	DummyValueCnt uint   `json:"DummyValueCnt"`
 }
 type DeleteJson struct {
 	WjID   uint `json:"WjId"`
@@ -205,6 +206,7 @@ func UpdateQuestion(ctx *gin.Context) {
 			var op model.Option
 			op.QuestionId = quesfront.QuesID
 			op.Title = option.Title
+			op.DummyValueCnt = 0
 			if option.OpID != 0 {
 				op.ID = option.OpID
 				database.DB.Save(&op) //更新
@@ -229,6 +231,7 @@ func UpdateQuestion(ctx *gin.Context) {
 			var op model.Option
 			op.QuestionId = ques.ID
 			op.Title = option.Title
+			op.DummyValueCnt = 0
 			database.DB.Create(&op)
 		}
 		ctx.JSON(http.StatusOK, gin.H{

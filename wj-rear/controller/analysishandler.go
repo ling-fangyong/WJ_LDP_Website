@@ -56,11 +56,43 @@ func AnalysisData(ctx *gin.Context) {
 					// fmt.Println(res)
 					// fmt.Println(algorithm.GRR(res, len(res), epsilon))
 					copy(res, algorithm.GRR(res, len(res), epsilon))
+
 					// fmt.Println("---------------------")
 					// fmt.Println(res)
 					// fmt.Println("---------------------")
 					for index := range quesItem.Options {
 						quesItem.Options[index].CalcOp = res[index]
+					}
+					// fmt.Println(quesItem.Options)
+					question = append(question, quesItem)
+				}
+			} else if quesItem.Type == 2 {
+				if err := database.DB.Raw("SELECT a.id AS OpID,a.title,a.DummyValueCnt,b.CalcOp FROM ( SELECT id,title,DummyValueCnt FROM `options` WHERE question_id = ?) AS a LEFT JOIN ( SELECT op_id,COUNT(op_id) AS CalcOp FROM answers WHERE question_id = ? GROUP BY op_id) As b ON a.id = b.op_id;", quesItem.QuesID, quesItem.QuesID).Find(&quesItem.Options).Error; err != nil {
+					ctx.JSON(http.StatusOK, gin.H{
+						"code": 422,
+						"msg":  "问题选项获取失败",
+					})
+					return
+				} else {
+					// fmt.Println(quesItem.Options)
+
+					res := make([]int, 2*len(quesItem.Options))
+					for index, option := range quesItem.Options {
+						res[index] = option.CalcOp
+					}
+					for index := range quesItem.Options {
+						res[index+len(quesItem.Options)] = int(quesItem.Options[index].DummyValueCnt)
+					}
+					// fmt.Println("---------------------")
+					// fmt.Println(res)
+					// fmt.Println(algorithm.GRR(res, len(res), epsilon))
+					copy(res, algorithm.GRR(res, len(res), epsilon))
+
+					// fmt.Println("---------------------")
+					// fmt.Println(res)
+					// fmt.Println("---------------------")
+					for index := range quesItem.Options {
+						quesItem.Options[index].CalcOp = res[index] * len(quesItem.Options)
 					}
 					// fmt.Println(quesItem.Options)
 					question = append(question, quesItem)
@@ -86,10 +118,10 @@ func AnalysisData(ctx *gin.Context) {
 						}
 						ans_int0 := res[0].ans_int
 						var ans_int1 int
-						if ans_int0 == 0 {
-							ans_int1 = 1
+						if ans_int0 == 1 {
+							ans_int1 = -1
 						} else {
-							ans_int1 = 0
+							ans_int1 = 1
 						}
 						copy(tem, algorithm.GRR(tem, 2, epsilon))
 						value := (float64(ans_int0*tem[0])+float64(ans_int1*tem[1]))*((item.DataMax-item.DataMin)/2) + (item.DataMax+item.DataMin)/2
