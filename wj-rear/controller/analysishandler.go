@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"wj_rear/database"
@@ -39,7 +40,7 @@ func AnalysisData(ctx *gin.Context) {
 			quesItem.Type = item.QuesType
 			// fmt.Println(quesItem.QuesID)
 			// fmt.Println(quesItem.Options)
-			if quesItem.Type == 1 || quesItem.Type == 2 {
+			if quesItem.Type == 1 {
 				if err := database.DB.Raw("SELECT a.id AS OpID,a.title,b.CalcOp FROM ( SELECT id,title FROM `options` WHERE question_id = ?) AS a LEFT JOIN ( SELECT op_id,COUNT(op_id) AS CalcOp FROM answers WHERE question_id = ? GROUP BY op_id) As b ON a.id = b.op_id;", quesItem.QuesID, quesItem.QuesID).Find(&quesItem.Options).Error; err != nil {
 					ctx.JSON(http.StatusOK, gin.H{
 						"code": 422,
@@ -67,7 +68,7 @@ func AnalysisData(ctx *gin.Context) {
 					question = append(question, quesItem)
 				}
 			} else if quesItem.Type == 2 {
-				if err := database.DB.Raw("SELECT a.id AS OpID,a.title,a.DummyValueCnt,b.CalcOp FROM ( SELECT id,title,DummyValueCnt FROM `options` WHERE question_id = ?) AS a LEFT JOIN ( SELECT op_id,COUNT(op_id) AS CalcOp FROM answers WHERE question_id = ? GROUP BY op_id) As b ON a.id = b.op_id;", quesItem.QuesID, quesItem.QuesID).Find(&quesItem.Options).Error; err != nil {
+				if err := database.DB.Raw("SELECT a.id AS OpID,a.title,a.dummy_value_cnt AS DummyValueCnt,b.CalcOp FROM ( SELECT id,title,dummy_value_cnt FROM `options` WHERE question_id = ?) AS a LEFT JOIN ( SELECT op_id,COUNT(op_id) AS CalcOp FROM answers WHERE question_id = ? GROUP BY op_id) As b ON a.id = b.op_id;", quesItem.QuesID, quesItem.QuesID).Find(&quesItem.Options).Error; err != nil {
 					ctx.JSON(http.StatusOK, gin.H{
 						"code": 422,
 						"msg":  "问题选项获取失败",
@@ -101,13 +102,21 @@ func AnalysisData(ctx *gin.Context) {
 				quesItem.DataMax = item.DataMax
 				quesItem.DataMin = item.DataMin
 				var res []result
-				if err := database.DB.Raw("SELECT ans_int,COUNT(ans_int) AS num FROM `answers` WHERE question_id = ? GROUP BY ans_int", quesItem.QuesID).Find(&res).Error; err != nil {
+				// if err := database.DB.Raw("SELECT ans_int ,COUNT(ans_int) AS ansCcalc FROM `answers` WHERE question_id = ? GROUP BY ans_int", quesItem.QuesID).Find(&res).Error; err != nil {
+				// 	ctx.JSON(http.StatusOK, gin.H{
+				// 		"code": 422,
+				// 		"msg":  "问题答案获取失败",
+				// 	})
+				// 	return
+				// }
+				if err := database.DB.Table("answers").Select("ans_int,count(ans_int) as ansCalc").Group("ans_int").Where("question_id = ?", quesItem.QuesID).Scan(&res).Error; err != nil {
 					ctx.JSON(http.StatusOK, gin.H{
 						"code": 422,
 						"msg":  "问题答案获取失败",
 					})
 					return
 				} else {
+					fmt.Println(res)
 					if len(res) != 0 {
 						var tem = make([]int, 2)
 						tem[0] = res[0].ansCalc
@@ -125,6 +134,10 @@ func AnalysisData(ctx *gin.Context) {
 						}
 						copy(tem, algorithm.GRR(tem, 2, epsilon))
 						value := (float64(ans_int0*tem[0])+float64(ans_int1*tem[1]))/float64(tem[0]+tem[1])*((item.DataMax-item.DataMin)/2) + (item.DataMax+item.DataMin)/2
+						fmt.Println((float64(ans_int0*tem[0]) + float64(ans_int1*tem[1])))
+						fmt.Println(float64(tem[0] + tem[1]))
+						fmt.Println((item.DataMax - item.DataMin) / 2)
+						fmt.Println((item.DataMax + item.DataMin) / 2)
 						quesItem.Textvalue = strconv.FormatFloat(value, 'E', -1, 64)
 					} else {
 						quesItem.Textvalue = "不存在填写值"
