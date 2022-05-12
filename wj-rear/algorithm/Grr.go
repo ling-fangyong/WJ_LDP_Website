@@ -1,6 +1,7 @@
 package algorithm
 
 import (
+	"fmt"
 	"math"
 )
 
@@ -23,7 +24,7 @@ func GRR(data []int, d int, epsilon float64) []int {
 	// }
 	// fmt.Println("GRR")
 	// fmt.Println(res)
-	// fmt.Println(data)
+	fmt.Println(data)
 	num := 0
 	for _, cnt := range data {
 		num += cnt

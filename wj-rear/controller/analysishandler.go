@@ -124,7 +124,7 @@ func AnalysisData(ctx *gin.Context) {
 							ans_int1 = 1
 						}
 						copy(tem, algorithm.GRR(tem, 2, epsilon))
-						value := (float64(ans_int0*tem[0])+float64(ans_int1*tem[1]))*((item.DataMax-item.DataMin)/2) + (item.DataMax+item.DataMin)/2
+						value := (float64(ans_int0*tem[0])+float64(ans_int1*tem[1]))/float64(tem[0]+tem[1])*((item.DataMax-item.DataMin)/2) + (item.DataMax+item.DataMin)/2
 						quesItem.Textvalue = strconv.FormatFloat(value, 'E', -1, 64)
 					} else {
 						quesItem.Textvalue = "不存在填写值"
