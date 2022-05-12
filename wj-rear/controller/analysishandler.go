@@ -14,9 +14,9 @@ import (
 
 const epsilon = 1
 
-type result struct {
-	ans_int int
-	ansCalc int
+type Result struct {
+	Ans_int int
+	AnsCalc int
 }
 
 func AnalysisData(ctx *gin.Context) {
@@ -101,15 +101,8 @@ func AnalysisData(ctx *gin.Context) {
 			} else if quesItem.Type == 3 {
 				quesItem.DataMax = item.DataMax
 				quesItem.DataMin = item.DataMin
-				var res []result
-				// if err := database.DB.Raw("SELECT ans_int ,COUNT(ans_int) AS ansCcalc FROM `answers` WHERE question_id = ? GROUP BY ans_int", quesItem.QuesID).Find(&res).Error; err != nil {
-				// 	ctx.JSON(http.StatusOK, gin.H{
-				// 		"code": 422,
-				// 		"msg":  "问题答案获取失败",
-				// 	})
-				// 	return
-				// }
-				if err := database.DB.Table("answers").Select("ans_int,count(ans_int) as ansCalc").Group("ans_int").Where("question_id = ?", quesItem.QuesID).Scan(&res).Error; err != nil {
+				var res []Result
+				if err := database.DB.Raw("SELECT ans_int ,COUNT(ans_int) AS AnsCalc FROM `answers` WHERE question_id = ? GROUP BY ans_int", quesItem.QuesID).Find(&res).Error; err != nil {
 					ctx.JSON(http.StatusOK, gin.H{
 						"code": 422,
 						"msg":  "问题答案获取失败",
@@ -119,13 +112,13 @@ func AnalysisData(ctx *gin.Context) {
 					fmt.Println(res)
 					if len(res) != 0 {
 						var tem = make([]int, 2)
-						tem[0] = res[0].ansCalc
+						tem[0] = res[0].AnsCalc
 						if len(res) == 2 {
-							tem[1] = res[1].ansCalc
+							tem[1] = res[1].AnsCalc
 						} else {
 							tem[1] = 0
 						}
-						ans_int0 := res[0].ans_int
+						ans_int0 := res[0].Ans_int
 						var ans_int1 int
 						if ans_int0 == 1 {
 							ans_int1 = -1

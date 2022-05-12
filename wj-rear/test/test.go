@@ -6,6 +6,8 @@ import (
 	"math/rand"
 	"time"
 	"wj_rear/algorithm"
+	"wj_rear/controller"
+	"wj_rear/database"
 
 	wr "github.com/mroth/weightedrand"
 )
@@ -180,6 +182,12 @@ func randSetArray(opNum int) []int {
 	}
 	return data
 }
+
+type Nowtest struct {
+	Ans_int     int  `gorm:"ans_int"`
+	Question_id uint `gorm:"question_id"`
+}
+
 func setFreq() {
 	OpNum := 4
 	TotalNum := 20000
@@ -249,4 +257,16 @@ func setFreq() {
 	res = res[:4]
 	fmt.Printf("Emitation Data:")
 	fmt.Println(res)
+	database.Init()
+	var ress []controller.Result
+	if err := database.DB.Raw("SELECT ans_int ,COUNT(ans_int) AS AnsCalc FROM `answers` WHERE question_id = ? GROUP BY ans_int", 6).Find(&ress).Error; err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(ress)
+
+	// var ress []Nowtest
+	// if err := database.DB.Raw("SELECT ans_int ,question_id  FROM `answers` WHERE question_id = ? ", 6).Find(&ress).Error; err != nil {
+	// 	fmt.Println(err)
+	// }
+	// fmt.Println(ress)
 }
